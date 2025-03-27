@@ -1,7 +1,12 @@
 package com.app.control
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.Settings
+import android.os.PowerManager
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -12,6 +17,9 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import androidx.core.net.toUri
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,6 +48,10 @@ class MainActivity : AppCompatActivity() {
                 qrImageView.setImageBitmap(qrBitmap)
             }
         }
+        requestDisableBatteryOptimization(this)
+        val serviceIntent = Intent(this, MyForegroundService::class.java)
+        startService(serviceIntent)
+
 
         // Thực thi command nhập vào
         executeButton.setOnClickListener {
@@ -58,10 +70,14 @@ class MainActivity : AppCompatActivity() {
     private fun generateQRCode(text: String): Bitmap {
         val size = 512
         val bits = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
+        val bitmap = createBitmap(size, size, Bitmap.Config.RGB_565)
         for (x in 0 until size) {
             for (y in 0 until size) {
-                bitmap.setPixel(x, y, if (bits.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+                bitmap[x, y] = if (bits.get(
+                        x,
+                        y
+                    )
+                ) android.graphics.Color.BLACK else android.graphics.Color.WHITE
             }
         }
         return bitmap
@@ -86,6 +102,22 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error executing command", e)
             e.message ?: "Error executing command"
+        }
+    }
+
+    @SuppressLint("BatteryLife")
+    private fun requestDisableBatteryOptimization(context: Context) {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val packageName = context.packageName
+
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            try {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                intent.data = "package:$packageName".toUri()
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("BatteryOptimization", "Không thể mở cài đặt tối ưu pin", e)
+            }
         }
     }
 }
