@@ -20,6 +20,7 @@ import java.io.InputStreamReader
 import androidx.core.net.toUri
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
+import com.google.android.material.textfield.TextInputEditText
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         val qrImageView = findViewById<ImageView>(R.id.qrImageView)
         val commandEditText = findViewById<EditText>(R.id.commandEditText)
         val executeButton = findViewById<Button>(R.id.executeButton)
+        val outputEditText = findViewById<TextInputEditText>(R.id.txt_output)
 
         // Lấy FCM token
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -60,6 +62,7 @@ class MainActivity : AppCompatActivity() {
                 val output = executeCommandAsRoot(command)
                 Log.d(TAG, "Command: $command")
                 Log.d(TAG, "Output: $output")
+                outputEditText.setText(output)
             }
         }
     }

