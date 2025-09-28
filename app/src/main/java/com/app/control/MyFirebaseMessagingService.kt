@@ -72,22 +72,33 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      * Thực thi command với quyền root.
      */
     private fun executeCommandAsRoot(command: String): String {
+        Log.d(TAG, "Executing command as root: $command") // Log command đầu vào
+
         return try {
             val process = Runtime.getRuntime().exec("su")
+            val output = StringBuilder()
+
             process.outputStream.bufferedWriter().use { writer ->
                 writer.write("$command\n")
                 writer.write("exit\n")
                 writer.flush()
             }
-            val output = StringBuilder()
-            process.inputStream.bufferedReader().forEachLine { output.append(it).append("\n") }
+
+            process.inputStream.bufferedReader().forEachLine { line ->
+                output.append(line).append("\n")
+            }
+
+            val result = output.toString().trim()
+            Log.d(TAG, "Command output: $result") // Log kết quả trả về
+
             process.waitFor()
-            output.toString().trim()
+            result
         } catch (e: Exception) {
             Log.e(TAG, "Error executing command", e)
             e.message ?: "Error executing command"
         }
     }
+
 
     /**
      * Gửi response về API.

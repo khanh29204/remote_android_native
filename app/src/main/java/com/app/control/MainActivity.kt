@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.zxing.BarcodeFormat
@@ -36,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         val commandEditText = findViewById<EditText>(R.id.commandEditText)
         val executeButton = findViewById<Button>(R.id.executeButton)
         val outputEditText = findViewById<TextInputEditText>(R.id.txt_output)
-
+        var fcmToken = ""
         // Lấy FCM token
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
@@ -47,6 +48,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "FCM Token: $token")
             token?.let {
                 val qrBitmap = generateQRCode(it)
+                fcmToken = it;
                 qrImageView.setImageBitmap(qrBitmap)
             }
         }
@@ -64,6 +66,15 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "Output: $output")
                 outputEditText.setText(output)
             }
+        }
+        // Copy fcmToken vào clipboard
+        qrImageView.setOnClickListener { view ->
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = android.content.ClipData.newPlainText("FCM Token", fcmToken)
+            clipboard.setPrimaryClip(clip)
+            Toast
+                .makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 

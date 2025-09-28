@@ -14,6 +14,17 @@
           </set>
         </option>
       </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="testRunner" value="CHOOSE_PER_TEST" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$USER_HOME$/Data/PolyProject/control_native" />
+            <option value="$USER_HOME$/Data/PolyProject/control_native/app" />
+          </set>
+        </option>
+      </GradleProjectSettings>
     </option>
   </component>
 </project>
